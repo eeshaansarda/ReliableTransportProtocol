@@ -1,0 +1,61 @@
+% Created 2022-04-18 Mon 02:30
+% Intended LaTeX compiler: pdflatex
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{grffile}
+\usepackage{longtable}
+\usepackage{wrapfig}
+\usepackage{rotating}
+\usepackage[normalem]{ulem}
+\usepackage{amsmath}
+\usepackage{textcomp}
+\usepackage{amssymb}
+\usepackage{capt-of}
+\usepackage{hyperref}
+\author{190022658}
+\date{\today}
+\title{CS3102 - P2 Report}
+\hypersetup{
+ pdfauthor={190022658},
+ pdftitle={CS3102 - P2 Report},
+ pdfkeywords={},
+ pdfsubject={},
+ pdfcreator={Emacs 28.1 (Org mode 9.5)}, 
+ pdflang={English}}
+\begin{document}
+
+\maketitle
+
+\section{Overview}
+\label{sec:org50fa5f3}
+The objective of the practical was to write a C program to design, implement, and test a simple, reliable transport protocol on top of UDP.
+
+\section{How to use}
+\label{sec:org22d72cf}
+There is a Makefile included. So a make/make all command should output server and client executables. ``client'' should be run with a hostname of the server as its argument. ``server'' runs before the client and without any argument. The makefile also includes a clean command which removes the object files and the executables.
+
+\section{Design}
+\label{sec:org4a20084}
+\subsection{ReliableConnection}
+\label{sec:orgbef2c96}
+This is the api which is both for the server and the client.
+
+There is a struct Probe defined in the header file which contains a sequence number, 3 flags and padding, timestamp and a string (for message). Using a void pointer might have been a better idea instead of a string. I could also have put all the flags inside one 8bit integer but since it would still take the same space there was no need to. The struct's size is 24 bytes.
+
+For ease, I created a hton\_probe and ntoh\_probe functions which change the struct from host order to network order and vice-versa. I use the byteorder64.h from studres here. I also created a print\_probe function and the empty\_probe to print and empty a probe respectively. The empty\_probe function also sets the timestamp value to reduce repetition.
+
+There is a sendData function which accepts local and remote sockets, an int (0 or 1) and a message. This is also used to establish and terminate connections. The int is supposed to work as a flag. This function sends a struct and waits for a reply. This uses the idle-rq protocol. The timeout is set for 200ms and can be changed via the header file. The protocol is incomplete as checksums have not been used which causes some features to be left out.
+
+The serverListen function accepts the local socket and waits for a connection using a loop. Inside there are if statements for each states and respond respectively.
+\subsection{ReliableServer}
+\label{sec:org0c1fe47}
+Sets up a socket and uses the api function serverListen to wait for input and respond. Uses getuid instead of hardcoding the value.
+\subsection{ReliableClient}
+\label{sec:orgd4e022c}
+Sets up the sockets and uses them to establish connection, send data and terminate the connection.
+\section{Conclusion}
+\label{sec:org2d5b00d}
+This practical could have been better. I could have analysed the connection, corrected the FSM and done some of the Part 2 extensions but this is the submissions due to circumstances. I did learn from the last practical and not repeat some of the same mistakes and learned about reliable connections.
+\end{document}
